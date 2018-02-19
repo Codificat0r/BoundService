@@ -2,6 +2,7 @@ package com.example.boundservice;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.Binder;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
@@ -13,12 +14,15 @@ import android.widget.Chronometer;
 
 public class BoundService extends Service {
     private Chronometer chronometer;
+    private IBinder binder;
 
     @Override
     public void onCreate() {
         super.onCreate();
         chronometer = new Chronometer(this);
         chronometer.setBase(SystemClock.elapsedRealtime());
+        //Quien quiera usar este service tiene que conectarse a el con este binder.
+        binder = new MyBinder();
     }
 
     @Override
@@ -32,7 +36,17 @@ public class BoundService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return binder;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        return true;
+    }
+
+    @Override
+    public void onRebind(Intent intent) {
+        super.onRebind(intent);
     }
 
     /**
@@ -53,5 +67,13 @@ public class BoundService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        chronometer.stop();
+    }
+
+    public class MyBinder extends Binder {
+        BoundService getService() {
+            //El binder encapsula el BoundService
+            return BoundService.this;
+        }
     }
 }
